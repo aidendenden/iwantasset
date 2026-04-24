@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IWantAsset Demo</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #121a31;
+        --panel-soft: #1a2442;
+        --text: #e8edff;
+        --muted: #95a1cc;
+        --primary: #7c5cff;
+        --accent: #23d5ab;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        background: radial-gradient(circle at 20% 0%, #1d2a55 0%, var(--bg) 45%);
+        color: var(--text);
+      }
+      .container { width: min(1120px, 92vw); margin: 0 auto; }
+      .nav { display:flex; justify-content:space-between; align-items:center; padding:20px 0; }
+      .logo { font-weight: 800; letter-spacing: .4px; }
+      .pill { padding: 8px 14px; border-radius: 999px; background: var(--panel-soft); color: var(--muted); font-size: 13px; }
+      .hero { padding: 24px 0 18px; }
+      .hero h1 { font-size: clamp(28px, 5vw, 48px); margin: 0; }
+      .hero p { color: var(--muted); max-width: 780px; line-height: 1.6; }
+      .search-wrap { display:grid; grid-template-columns: 1fr 160px 160px; gap:10px; margin-top: 18px; }
+      input, select {
+        width: 100%; border:none; border-radius: 12px; padding: 12px 14px;
+        background: var(--panel); color: var(--text);
+      }
+      .layout { display:grid; grid-template-columns: 1fr 300px; gap: 16px; padding: 16px 0 28px; }
+      .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      .card {
+        background: var(--panel); border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+      }
+      .preview { height: 130px; background: linear-gradient(135deg, #7c5cff, #23d5ab); display:grid; place-items:center; font-weight:700; }
+      .card-content { padding: 12px; }
+      .meta { color: var(--muted); font-size: 12px; margin: 4px 0 10px; }
+      .price-row { display:flex; justify-content:space-between; align-items:center; }
+      .btn {
+        border:none; border-radius: 10px; background: var(--primary); color: white; cursor:pointer;
+        padding: 8px 10px; font-size: 13px;
+      }
+      .side { background: var(--panel); border-radius: 14px; padding: 14px; height: fit-content; }
+      .side h3 { margin-top: 4px; }
+      .feature { background: var(--panel-soft); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+      .tag { display:inline-block; margin: 5px 6px 0 0; background: #29355f; color: #c3cff9; padding: 5px 8px; border-radius: 999px; font-size: 12px; }
+      .checkout { margin-top: 14px; background: #0f1730; border-radius: 10px; padding: 10px; }
+      .checkout p { margin: 8px 0; color: var(--muted); }
+      .preview-modal {
+        position: fixed; inset: 0; background: rgba(0,0,0,.7); display:none;
+        place-items:center; padding: 20px;
+      }
+      .preview-panel { width:min(760px, 95vw); background: var(--panel); border-radius: 16px; padding: 16px; }
+      .close { float:right; background: transparent; color:#fff; border: 1px solid #40508b; border-radius: 8px; padding: 4px 8px; cursor:pointer; }
+      .preview-box { height: 280px; margin-top: 14px; border-radius: 12px; display:grid; place-items:center; background: linear-gradient(120deg,#2b3b72,#223158); }
+      @media (max-width: 960px) {
+        .layout { grid-template-columns: 1fr; }
+        .grid { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 640px) {
+        .search-wrap { grid-template-columns: 1fr; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="nav">
+        <div class="logo">IWantAsset <span class="pill">Demo</span></div>
+        <div class="pill">创作者收益分成：85%</div>
+      </header>
+
+      <section class="hero">
+        <h1>数字资产分享与售卖平台 Demo</h1>
+        <p>
+          面向创作者的一站式平台：可发布 2D/3D 资产、插件、模板、音频、视频素材；支持单品购买和会员订阅，并提供分类搜索与内容预览。
+        </p>
+
+        <div class="search-wrap">
+          <input id="searchInput" placeholder="搜索资产，例如：Low Poly、PPT、SFX..." />
+          <select id="categorySelect">
+            <option value="all">全部分类</option>
+            <option value="3d">3D/2D 美术</option>
+            <option value="template">模板</option>
+            <option value="audio">音频</option>
+            <option value="plugin">插件</option>
+          </select>
+          <select id="sortSelect">
+            <option value="popular">按热度</option>
+            <option value="newest">最新发布</option>
+            <option value="price_asc">价格从低到高</option>
+            <option value="price_desc">价格从高到低</option>
+          </select>
+        </div>
+      </section>
+
+      <main class="layout">
+        <section>
+          <div id="assetGrid" class="grid"></div>
+        </section>
+
+        <aside class="side">
+          <h3>创作者会员订阅</h3>
+          <div class="feature">
+            <strong>基础会员 ¥29/月</strong>
+            <div class="meta">每月 5 个专属素材 + 9 折</div>
+          </div>
+          <div class="feature">
+            <strong>专业会员 ¥99/月</strong>
+            <div class="meta">无限下载专属库 + 7 折 + 抢先体验</div>
+          </div>
+
+          <h4>热门标签</h4>
+          <div>
+            <span class="tag">#LowPoly</span>
+            <span class="tag">#UI Kit</span>
+            <span class="tag">#SFX</span>
+            <span class="tag">#PPT</span>
+            <span class="tag">#AfterEffects</span>
+          </div>
+
+          <div class="checkout">
+            <h4>购物车 Demo</h4>
+            <p>已选商品：<span id="cartCount">0</span></p>
+            <p>预计总价：¥<span id="cartTotal">0</span></p>
+            <button class="btn" style="width:100%;">前往结算</button>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div id="previewModal" class="preview-modal">
+      <div class="preview-panel">
+        <button class="close" onclick="togglePreview(false)">关闭</button>
+        <h3 id="previewTitle">资产预览</h3>
+        <div id="previewType" class="meta"></div>
+        <div class="preview-box" id="previewBox">预览区域（图片 / 视频 / 音频波形 / 3D 截图）</div>
+      </div>
+    </div>
+
+    <script>
+      const assets = [
+        { id: 1, title: 'Low Poly 森林包', category: '3d', price: 49, sold: 2200, createdAt: '2026-04-10', type: '3D 资产' },
+        { id: 2, title: 'UI 组件 PSD 模板', category: 'template', price: 19, sold: 840, createdAt: '2026-04-14', type: 'PSD 模板' },
+        { id: 3, title: '电影感转场音效包', category: 'audio', price: 29, sold: 1320, createdAt: '2026-04-04', type: 'SFX 音频' },
+        { id: 4, title: 'Unity 粒子特效插件', category: 'plugin', price: 99, sold: 650, createdAt: '2026-04-20', type: '插件' },
+        { id: 5, title: '商业汇报 PPT 套件', category: 'template', price: 39, sold: 410, createdAt: '2026-04-22', type: 'PPT 模板' },
+        { id: 6, title: '2D 角色动作序列', category: '3d', price: 59, sold: 980, createdAt: '2026-04-01', type: '2D 美术' },
+      ];
+
+      const state = {
+        q: '',
+        category: 'all',
+        sort: 'popular',
+        cart: [],
+      };
+
+      const assetGrid = document.getElementById('assetGrid');
+      const cartCount = document.getElementById('cartCount');
+      const cartTotal = document.getElementById('cartTotal');
+
+      function updateCart() {
+        cartCount.textContent = state.cart.length;
+        const total = state.cart.reduce((sum, item) => sum + item.price, 0);
+        cartTotal.textContent = total;
+      }
+
+      function togglePreview(show, asset) {
+        const modal = document.getElementById('previewModal');
+        if (!show) {
+          modal.style.display = 'none';
+          return;
+        }
+        document.getElementById('previewTitle').textContent = asset.title;
+        document.getElementById('previewType').textContent = `类型：${asset.type} · 价格：¥${asset.price}`;
+        document.getElementById('previewBox').textContent = `${asset.title} 的示例预览`;
+        modal.style.display = 'grid';
+      }
+
+      function addToCart(asset) {
+        state.cart.push(asset);
+        updateCart();
+      }
+
+      function render() {
+        let list = assets.filter((a) => {
+          const matchQ = a.title.toLowerCase().includes(state.q.toLowerCase());
+          const matchC = state.category === 'all' ? true : a.category === state.category;
+          return matchQ && matchC;
+        });
+
+        if (state.sort === 'popular') list.sort((a, b) => b.sold - a.sold);
+        if (state.sort === 'newest') list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        if (state.sort === 'price_asc') list.sort((a, b) => a.price - b.price);
+        if (state.sort === 'price_desc') list.sort((a, b) => b.price - a.price);
+
+        assetGrid.innerHTML = list.map((asset) => `
+          <article class="card">
+            <div class="preview">${asset.type}</div>
+            <div class="card-content">
+              <strong>${asset.title}</strong>
+              <div class="meta">销量 ${asset.sold} · 上架 ${asset.createdAt}</div>
+              <div class="price-row">
+                <div>¥${asset.price}</div>
+                <div>
+                  <button class="btn" onclick='togglePreview(true, ${JSON.stringify(asset)})'>预览</button>
+                  <button class="btn" onclick='addToCart(${JSON.stringify(asset)})'>加入购物车</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `).join('');
+      }
+
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        state.q = e.target.value;
+        render();
+      });
+      document.getElementById('categorySelect').addEventListener('change', (e) => {
+        state.category = e.target.value;
+        render();
+      });
+      document.getElementById('sortSelect').addEventListener('change', (e) => {
+        state.sort = e.target.value;
+        render();
+      });
+
+      render();
+      updateCart();
+    </script>
+  </body>
+</html>
